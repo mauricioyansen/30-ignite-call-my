@@ -8,9 +8,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 const claimUsernameFormSchema = z.object({
   username: z
     .string()
-    .min(3, { message: "Digite um username válido" })
+    .min(3, { message: "O username precisa ter ao menos 3 letras" })
     .regex(/^([a-z\\-]+)$/i, {
-      message: "O usuário pode ter apenas letras e hifens.",
+      message: "O username pode ter apenas letras e hifens.",
     })
     .transform((username) => username.toLocaleLowerCase()),
 });
