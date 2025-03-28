@@ -27,7 +27,7 @@ export default async function handle(
 
   const blockedWeekDays = [0, 1, 2, 3, 4, 5, 6].filter((weekDay2) => {
     return !availableWeekDays.some(
-      (availableWeekDay) => availableWeekDay.weekDay === weekDay2
+      (availableWeekDay: any) => availableWeekDay.weekDay === weekDay2
     );
   });
 

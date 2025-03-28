@@ -56,7 +56,7 @@ export default async function handle(
 
   const availableTimes = possibleTimes.filter((time) => {
     const isTimeBlocked = blockedTimes.some(
-      (blockedTime) => blockedTime.date.getHours() === time
+      (blockedTime: any) => blockedTime.date.getHours() === time
     );
 
     const isTimeInPast = referenceDate.set("hour", time).isBefore(new Date());
