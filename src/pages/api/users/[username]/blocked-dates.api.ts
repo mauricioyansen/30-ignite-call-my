@@ -31,32 +31,22 @@ export default async function handle(
     );
   });
 
-  const blockedDatesRaw: Array<{ date: number | BigInt }> =
-    await prisma.$queryRaw`
+  const blockedDatesRaw: Array<{ date: number }> = await prisma.$queryRaw`
   SELECT
-    EXTRACT(DAY FROM S.date) AS date,
-    COUNT(S.date) as amount,
-    ((UTI.time_end_in_minutes - UTI.time_start_in_minutes) / 60) AS size
-
+    EXTRACT(DAY FROM S.date AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo') AS date,
+    COUNT(S.date) AS amount,
+    ((UTI.time_end_in_minutes - UTI.time_start_in_minutes) / 60) AS available_hours
   FROM scheduling S
-
   LEFT JOIN user_time_intervals UTI
-    ON UTI.week_day = WEEKDAY(DATE_ADD(S.date, INTERVAL 1 DAY))
-
+    ON EXTRACT(DOW FROM S.date AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo') = UTI.week_day
+    AND S.user_id = UTI.user_id
   WHERE S.user_id = ${user.id}
-    AND DATE_FORMAT(S.date, "%Y-%m") = ${`${year}-${month}`}
-
-  GROUP BY EXTRACT(DAY FROM S.date),
-  ((UTI.time_end_in_minutes - UTI.time_start_in_minutes) / 60)
-
-    HAVING amount >= size
-  `;
-
-  // const formattedBlockedDatesRaw = blockedDatesRaw.map(
-  //   (row: { date: BigInt }) => ({
-  //     date: row.date.toString(), // Converte para string ou pode usar .toNumber() para número
-  //   })
-  // );
+    AND EXTRACT(YEAR FROM S.date AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo') = ${year}::int
+    AND EXTRACT(MONTH FROM S.date AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo') = ${month}::int
+  GROUP BY EXTRACT(DAY FROM S.date AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo'),
+           ((UTI.time_end_in_minutes - UTI.time_start_in_minutes) / 60)
+  HAVING COUNT(S.date) >= ((UTI.time_end_in_minutes - UTI.time_start_in_minutes) / 60)
+`;
 
   const blockedDates = blockedDatesRaw.map((item) => Number(item.date));
 
